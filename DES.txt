@@ -1,0 +1,205 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package crypt;
+
+/**
+ *
+ * @author Marwan
+ */
+public class DES {
+      char[] ip,L,R,Rn,keyP,ER,Cn,Dn,keyn,ER_XOR_K,F;
+      String Cipher1;
+      String Plain1;
+      int round =0;
+      int roundDec=16;
+  MatricesMethods a = new MatricesMethods();
+  public void Encrypt(String PlainText, String Key) {
+      
+        String[] binaryPlain=a.ToBinary(PlainText);
+      String[] binaryKey =a.ToBinary(Key);
+      ip=a.Ip(binaryPlain);
+      keyP=a.GenerateKey(binaryKey);
+      SplitRightLeft_Cn_Dn(ip,keyP);
+      System.out.print("\n EnCrYpTiOn : " );
+      System.out.print("\n ---------------------------------------------------------------------------------------------------" );
+        Rounds(); 
+      
+      
+  }
+  
+  public void SplitRightLeft_Cn_Dn(char[] text,char[] key){
+       L = new char[text.length/2];
+       R = new char[text.length/2];
+       Cn = new char[key.length/2];
+       Dn = new char[key.length/2];
+      for(int i =0; i <L.length; i++) {
+         L[i]=text[i];
+         R[i]=text[i+R.length];
+         
+      }
+      for(int i =0; i <Cn.length; i++) {
+         Cn[i]=key[i];
+         Dn[i]=key[i+Dn.length];
+         
+      }
+     
+      
+  }
+  
+  
+  private void Rounds() {
+      String ci="";
+      char[] Cipher = new char[64];
+      ER=a.Expand(R);
+      Cn=a.leftShift(Cn, round);
+      Dn=a.leftShift(Dn, round);
+      keyn =a.KeyN(Cn, Dn);
+       System.out.print("\n KEY : " );
+            displayBits(keyn);
+          //System.out.print("\n ---------------------------------------------------------------------------------------------------" );
+      
+      ER_XOR_K=a.XOR(ER, keyn);
+      F=a.Eight6Bits(ER_XOR_K);
+      Rn=a.XOR(L, F);
+       System.out.print("\n Round : " + round);
+       System.out.print("\n R : ");
+       for(int i =0; i<R.length; i++) {
+          System.out.print(" " + R[i] + " "); 
+       }
+       System.out.print("\n L : ");
+       for(int i =0; i<L.length; i++) {
+          System.out.print(" " + L[i] + " "); 
+       }
+      L=R;
+      R=Rn;
+       System.out.print("\n R" + (round+1) + ": ");
+       for(int i =0; i<R.length; i++) {
+          System.out.print(" " + R[i] + " "); 
+       }
+       //System.out.println();
+       
+      round++;
+      if(round <16) {
+          
+          Rounds();
+          }
+      else{
+           for(int i =0; i<R.length; i++) {
+          Cipher[i]=R[i];
+          Cipher[i+L.length]=L[i];
+          
+       }
+           System.out.print("\n R16L16: ");
+            for(int i =0; i<Cipher.length; i++) {
+          System.out.print(" " + Cipher[i] + " "); 
+       }
+            
+            char[] Cipherr=a.IPinverse(Cipher);
+            System.out.print("\n Cipher IP-1: ");
+            for(int i =0; i<Cipherr.length; i++) {
+          System.out.print(" " + Cipherr[i] + " "); 
+       }
+            System.out.print("\n Cipher Text : ");
+             ci=displayBits(Cipherr);
+          System.out.print("\n ---------------------------------------------------------------------------------------------------" );
+         Cipher1=ci;
+      }
+      
+      
+      
+  }
+  
+  private static String displayBits(char[] bits) {
+		// Method to display int array bits as a hexadecimal string.
+                StringBuilder out=new StringBuilder();
+		for(int i=0 ; i < bits.length ; i+=4) {
+			String output = new String();
+			for(int j=0 ; j < 4 ; j++) {
+				output += bits[i+j];
+			}
+			System.out.print(Integer.toHexString(Integer.parseInt(output, 2)));
+                        out.append(Integer.toHexString(Integer.parseInt(output, 2)));
+		}
+		//System.out.println();
+                return out.toString();
+	}
+ 
+    public void DecCrypt (String Cipher, String Key){
+       
+         String[] binaryCipher=a.ToBinary(Cipher);
+      String[] binaryKey =a.ToBinary(Key);
+      ip=a.Ip(binaryCipher);
+      keyP=a.GenerateKey(binaryKey);
+      SplitRightLeft_Cn_Dn(ip,keyP);
+     System.out.print("\n DeCrYpTiOn : " );
+      System.out.print("\n ---------------------------------------------------------------------------------------------------" );
+       String jh=RoundsDec();
+       
+ }
+ 
+  
+  private String RoundsDec() {
+      char[] Cipher = new char[64];
+      StringBuilder cipher = new StringBuilder();
+      ER=a.Expand(R);
+    
+      keyn =a.KeyN(Cn, Dn);
+        Cn=a.RightShift(Cn, roundDec);
+      Dn=a.RightShift(Dn, roundDec);
+      System.out.print("\n KEY : " );
+            displayBits(keyn);
+          //System.out.print("\n ---------------------------------------------------------------------------------------------------" );
+      
+      ER_XOR_K=a.XOR(ER, keyn);
+      F=a.Eight6Bits(ER_XOR_K);
+      Rn=a.XOR(L, F);
+       System.out.print("\n Round : " + roundDec);
+       System.out.print("\n R : ");
+       for(int i =0; i<R.length; i++) {
+          System.out.print(" " +R[i] + " "); 
+       }
+       System.out.print("\n L : ");
+       for(int i =0; i<L.length; i++) {
+          System.out.print(" " + L[i] + " "); 
+       }
+      L=R;
+      R=Rn;
+       System.out.print("\n R" + (roundDec+1) + ": ");
+       for(int i =0; i<R.length; i++) {
+          System.out.print(" " + R[i] + " "); 
+       }
+      roundDec--;
+      if(roundDec >0) {
+          
+          RoundsDec();
+          }
+      else{
+           for(int i =0; i<R.length; i++) {
+          Cipher[i]=R[i];
+          Cipher[i+L.length]=L[i];
+          
+       }
+           System.out.print("\n R16L16: ");
+            for(int i =0; i<Cipher.length; i++) {
+          System.out.print(" " + Cipher[i] + " "); 
+       }
+            
+            char[] Cipherr=a.IPinverse(Cipher);
+            System.out.print("\n Cipher IP-1: ");
+            for(int i =0; i<Cipherr.length; i++) {
+          System.out.print(" " + Cipherr[i] + " "); 
+       }
+            System.out.print("\n Plain Text : ");
+            String ci=displayBits(Cipherr);
+            Plain1=ci;
+          System.out.print("\n ---------------------------------------------------------------------------------------------------" );
+      }
+     
+      
+      return Cipher.toString();
+  }
+  
+}
